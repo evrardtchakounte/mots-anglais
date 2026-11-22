@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mots anglais</title>
+<meta name="description" content="Apprends les 2000 mots anglais les plus utilisés à l'oral, 10 par jour, avec répétition espacée.">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="btn-back" aria-label="Retour" hidden>←</button>
+  <h1 id="title">Mots anglais</h1>
+  <button class="icon-btn" id="btn-settings" aria-label="Réglages">⚙️</button>
+</header>
+
+<main id="app">
+  <!-- Accueil -->
+  <section id="view-home" class="view">
+    <div class="streak" id="streak"></div>
+    <div class="stats">
+      <div class="stat"><b id="st-due">0</b><span>à réviser</span></div>
+      <div class="stat"><b id="st-new">0/10</b><span>nouveaux aujourd'hui</span></div>
+      <div class="stat"><b id="st-known">0</b><span>mots appris</span></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress"><div id="progress-bar"></div></div>
+      <p class="muted" id="progress-text"></p>
+    </div>
+    <button class="btn primary big" id="btn-start">Commencer</button>
+    <button class="btn" id="btn-more" hidden>Apprendre 10 mots de plus</button>
+    <button class="btn ghost" id="btn-list">📖 Voir tous les mots</button>
+    <p class="hint">Chaque jour : d'abord les révisions, puis tes nouveaux mots. Touche 🔊 pour entendre la prononciation.</p>
+  </section>
+
+  <!-- Carte -->
+  <section id="view-card" class="view" hidden>
+    <div class="session-bar"><div id="session-bar"></div></div>
+    <p class="muted center" id="session-info"></p>
+    <article class="card" id="card">
+      <span class="badge" id="card-badge"></span>
+      <div class="emoji" id="card-emoji"></div>
+      <div class="word-row">
+        <h2 id="card-word"></h2>
+        <button class="speak" id="speak-word" aria-label="Écouter">🔊</button>
+      </div>
+      <div id="card-back" hidden>
+        <p class="translation" id="card-fr"></p>
+        <div class="example">
+          <button class="speak small" data-ex="0" aria-label="Écouter l'exemple">🔊</button>
+          <div><p class="en" id="ex1"></p><p class="fr" id="ex1fr"></p></div>
+        </div>
+        <div class="example">
+          <button class="speak small" data-ex="1" aria-label="Écouter l'exemple">🔊</button>
+          <div><p class="en" id="ex2"></p><p class="fr" id="ex2fr"></p></div>
+        </div>
+      </div>
+    </article>
+    <div class="actions" id="act-reveal">
+      <p class="muted center">Essaie de te souvenir du sens, puis :</p>
+      <button class="btn primary big" id="btn-reveal">Voir la réponse</button>
+    </div>
+    <div class="actions" id="act-new" hidden>
+      <button class="btn primary big" id="btn-got">J'ai compris ✓</button>
+    </div>
+    <div class="actions grades" id="act-grade" hidden>
+      <button class="btn grade again" data-g="0">À revoir<small>&lt; 1 min</small></button>
+      <button class="btn grade hard" data-g="3">Difficile<small id="iv-3"></small></button>
+      <button class="btn grade good" data-g="4">Bien<small id="iv-4"></small></button>
+      <button class="btn grade easy" data-g="5">Facile<small id="iv-5"></small></button>
+    </div>
+  </section>
+
+  <!-- Fin -->
+  <section id="view-done" class="view" hidden>
+    <div class="done-emoji">🎉</div>
+    <h2 class="center">Bravo !</h2>
+    <p class="center" id="done-text"></p>
+    <button class="btn primary big" id="btn-home">Retour à l'accueil</button>
+  </section>
+
+  <!-- Liste -->
+  <section id="view-list" class="view" hidden>
+    <input type="search" id="search" placeholder="Chercher un mot (anglais ou français)" autocomplete="off">
+    <div class="filters">
+      <button class="chip active" data-f="all">Tous</button>
+      <button class="chip" data-f="learned">Appris</button>
+      <button class="chip" data-f="new">Pas encore vus</button>
+    </div>
+    <ul id="word-list"></ul>
+    <button class="btn ghost" id="btn-list-more" hidden>Afficher plus</button>
+  </section>
+
+  <!-- Réglages -->
+  <section id="view-settings" class="view" hidden>
+    <label class="field">Nouveaux mots par jour
+      <select id="set-daily">
+        <option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option>
+      </select>
+    </label>
+    <label class="field">Vitesse de la voix
+      <select id="set-rate">
+        <option value="0.7">Lente</option><option value="0.9" selected>Normale</option><option value="1.1">Rapide</option>
+      </select>
+    </label>
+    <label class="field">Accent
+      <select id="set-accent">
+        <option value="en-US" selected>Américain</option><option value="en-GB">Britannique</option>
+      </select>
+    </label>
+    <label class="field row"><input type="checkbox" id="set-autoplay" checked> Prononcer le mot automatiquement</label>
+    <button class="btn" id="btn-test-voice">🔊 Tester la voix</button>
+    <p class="muted" id="voice-info"></p>
+    <h3>Sauvegarde</h3>
+    <p class="muted">Ta progression est enregistrée sur ce téléphone. Fais une sauvegarde de temps en temps (par exemple dans Google Drive) pour ne rien perdre.</p>
+    <button class="btn" id="btn-export">⬇️ Exporter ma progression</button>
+    <label class="btn file-btn">⬆️ Importer une sauvegarde<input type="file" id="file-import" accept="application/json,.json" hidden></label>
+    <button class="btn danger" id="btn-reset">Tout recommencer à zéro</button>
+    <p class="muted small-print">2022 mots classés selon leur fréquence dans les sous-titres de films et séries (OpenSubtitles). Fonctionne sans connexion une fois ouverte.</p>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="words.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
