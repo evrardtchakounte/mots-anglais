@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mots anglais</title>
-<meta name="description" content="Apprends les 2000 mots anglais les plus utilisés à l'oral, 10 par jour, avec répétition espacée.">
+<meta name="description" content="Apprends les mots anglais les plus utilisés, du niveau débutant à avancé, 10 par jour, avec répétition espacée.">
 <meta name="theme-color" content="#2563eb">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -31,6 +31,14 @@
       <div class="progress"><div id="progress-bar"></div></div>
       <p class="muted" id="progress-text"></p>
     </div>
+    <div class="level-box">
+      <p class="label">Niveau des nouveaux mots</p>
+      <div class="levels" id="level-pick">
+        <button class="lvl" data-l="deb"><b>Débutant</b><small>A1–A2</small><span class="lp" id="lp-deb"></span></button>
+        <button class="lvl" data-l="int"><b>Intermédiaire</b><small>B1–B2</small><span class="lp" id="lp-int"></span></button>
+        <button class="lvl" data-l="adv"><b>Avancé</b><small>C1–C2</small><span class="lp" id="lp-adv"></span></button>
+      </div>
+    </div>
     <button class="btn primary big" id="btn-start">Commencer</button>
     <button class="btn" id="btn-more" hidden>Apprendre 10 mots de plus</button>
     <button class="btn ghost" id="btn-list">📖 Voir tous les mots</button>
@@ -43,6 +51,7 @@
     <p class="muted center" id="session-info"></p>
     <article class="card" id="card">
       <span class="badge" id="card-badge"></span>
+      <span class="badge lvbadge" id="card-level"></span>
       <div class="emoji" id="card-emoji"></div>
       <div class="word-row">
         <h2 id="card-word"></h2>
@@ -91,6 +100,12 @@
       <button class="chip" data-f="learned">Appris</button>
       <button class="chip" data-f="new">Pas encore vus</button>
     </div>
+    <div class="filters" id="level-filters">
+      <button class="chip lchip active" data-lf="all">Tous niveaux</button>
+      <button class="chip lchip" data-lf="deb">Débutant</button>
+      <button class="chip lchip" data-lf="int">Intermédiaire</button>
+      <button class="chip lchip" data-lf="adv">Avancé</button>
+    </div>
     <ul id="word-list"></ul>
     <button class="btn ghost" id="btn-list-more" hidden>Afficher plus</button>
   </section>
@@ -120,7 +135,7 @@
     <button class="btn" id="btn-export">⬇️ Exporter ma progression</button>
     <label class="btn file-btn">⬆️ Importer une sauvegarde<input type="file" id="file-import" accept="application/json,.json" hidden></label>
     <button class="btn danger" id="btn-reset">Tout recommencer à zéro</button>
-    <p class="muted small-print">2022 mots classés selon leur fréquence dans les sous-titres de films et séries (OpenSubtitles). Fonctionne sans connexion une fois ouverte.</p>
+    <p class="muted small-print">2354 mots : les ~2000 plus fréquents à l'oral (sous-titres OpenSubtitles) + 335 mots avancés C1–C2. Niveaux CECRL : CEFR-J et Octanove Vocabulary Profile. Fonctionne sans connexion une fois ouverte.</p>
   </section>
 </main>
 

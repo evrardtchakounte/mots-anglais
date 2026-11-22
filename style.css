@@ -153,3 +153,23 @@ h3 { margin: 12px 0 0; }
   padding: 10px 16px; border-radius: 12px; font-size: 15px; z-index: 20;
   max-width: calc(100% - 32px);
 }
+
+.level-box .label { font-weight: 600; margin: 4px 0 8px; }
+.levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lvl {
+  border: 2px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 14px; padding: 10px 4px; font: inherit; cursor: pointer; text-align: center;
+}
+.lvl b { display: block; font-size: 14px; }
+.lvl small { display: block; color: var(--muted); font-size: 12px; }
+.lvl .lp { display: block; font-size: 12px; margin-top: 4px; color: var(--muted); }
+.lvl.active { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--surface)); }
+.lvl.active b { color: var(--primary); }
+.badge.lvl-deb { background: #dcfce7; color: #15803d; }
+.badge.lvl-int { background: #fef3c7; color: #b45309; }
+.badge.lvl-adv { background: #fee2e2; color: #b91c1c; }
+.lvtag { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle; }
+.lvtag.deb { background: #dcfce7; color: #15803d; }
+.lvtag.int { background: #fef3c7; color: #b45309; }
+.lvtag.adv { background: #fee2e2; color: #b91c1c; }
+.card .lvbadge { left: auto; right: 12px; }

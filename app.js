@@ -17,7 +17,7 @@
       cards: {},                       // mot -> {ef, reps, iv, due, lapses}
       daily: { day: today(), newCount: 0 },
       streak: { last: null, count: 0 },
-      settings: { daily: 10, rate: 0.9, accent: 'en-US', autoplay: true }
+      settings: { daily: 10, rate: 0.9, accent: 'en-US', autoplay: true, level: 'deb' }
     };
   }
   function load() {
@@ -41,6 +41,9 @@
   }
 
   const INDEX = new Map(WORDS.map((w, i) => [w[0], i]));
+  const LEVELS = ['deb', 'int', 'adv'];
+  const LEVEL_NAME = { deb: 'Débutant', int: 'Intermédiaire', adv: 'Avancé' };
+  function levelOf(d) { return d[7] < 'B' ? 'deb' : d[7] < 'C' ? 'int' : 'adv'; }
 
   // ---------- Calculs ----------
   function dueList() {
@@ -49,10 +52,15 @@
       .filter((w) => INDEX.has(w) && state.cards[w].due <= t)
       .sort((a, b) => state.cards[a].due - state.cards[b].due || INDEX.get(a) - INDEX.get(b));
   }
+  // Mots du niveau choisi d'abord (par fréquence), puis les niveaux au-dessus, puis en dessous.
   function nextNew(n) {
+    const sel = LEVELS.indexOf(state.settings.level);
+    const order = LEVELS.slice(Math.max(sel, 0)).concat(LEVELS.slice(0, Math.max(sel, 0)).reverse());
     const out = [];
-    for (let i = 0; i < WORDS.length && out.length < n; i++) {
-      if (!state.cards[WORDS[i][0]]) out.push(WORDS[i][0]);
+    for (const lv of order) {
+      for (let i = 0; i < WORDS.length && out.length < n; i++) {
+        if (levelOf(WORDS[i]) === lv && !state.cards[WORDS[i][0]]) out.push(WORDS[i][0]);
+      }
     }
     return out;
   }
@@ -152,6 +160,12 @@
     const pct = (learned / WORDS.length) * 100;
     $('progress-bar').style.width = pct.toFixed(1) + '%';
     $('progress-text').textContent = learned + ' / ' + WORDS.length + ' mots appris (' + pct.toFixed(1) + ' %)';
+    LEVELS.forEach((lv) => {
+      let tot = 0, ok = 0;
+      WORDS.forEach((d) => { if (levelOf(d) === lv) { tot++; const c = state.cards[d[0]]; if (c && c.reps > 0) ok++; } });
+      $('lp-' + lv).textContent = ok + ' / ' + tot;
+    });
+    document.querySelectorAll('#level-pick .lvl').forEach((b) => b.classList.toggle('active', b.dataset.l === state.settings.level));
     const s = state.streak;
     const active = s.last === today() || s.last === today() - 1;
     $('streak').textContent = active && s.count > 0 ? '🔥 ' + s.count + ' jour' + (s.count > 1 ? 's' : '') + ' d\'affilée' : '';
@@ -200,6 +214,9 @@
     const d = WORDS[INDEX.get(w)];
     $('card-emoji').textContent = d[2];
     $('card-word').textContent = d[0];
+    const lv = levelOf(d);
+    $('card-level').className = 'badge lvbadge lvl-' + lv;
+    $('card-level').textContent = LEVEL_NAME[lv] + ' · ' + d[7];
     $('card-fr').textContent = d[1];
     $('ex1').textContent = d[3]; $('ex1fr').textContent = d[4];
     $('ex2').textContent = d[5]; $('ex2fr').textContent = d[6];
@@ -288,6 +305,7 @@
 
   // ---------- Liste ----------
   let filter = 'all';
+  let lfilter = 'all';
   let listLimit = 100;
   function strip(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function renderList() {
@@ -300,6 +318,7 @@
       const c = state.cards[d[0]];
       if (filter === 'learned' && !(c && c.reps > 0)) continue;
       if (filter === 'new' && c) continue;
+      if (lfilter !== 'all' && levelOf(d) !== lfilter) continue;
       if (q && !strip(d[0]).includes(q) && !strip(d[1]).includes(q)) continue;
       count++;
       if (shown >= listLimit) continue;
@@ -309,7 +328,10 @@
       li.innerHTML = '<span class="e"></span><span class="w"><b></b><span></span></span><span class="s"></span>';
       li.querySelector('.e').textContent = d[2];
       li.querySelector('b').textContent = (i + 1) + '. ' + d[0];
-      li.querySelector('.w span').textContent = d[1];
+      const tag = document.createElement('span');
+      tag.className = 'lvtag ' + levelOf(d); tag.textContent = d[7];
+      li.querySelector('b').appendChild(tag);
+      li.querySelector('.w > span').textContent = d[1];
       const s = li.querySelector('.s');
       s.textContent = status;
       if (c && c.reps > 0) s.classList.add('ok');
@@ -349,10 +371,22 @@
   $('btn-list').onclick = () => { listLimit = 100; renderList(); show('list'); };
   $('search').oninput = () => { listLimit = 100; renderList(); };
   $('btn-list-more').onclick = () => { listLimit += 200; renderList(); };
-  document.querySelectorAll('.chip').forEach((b) => {
+  document.querySelectorAll('.chip[data-f]').forEach((b) => {
     b.onclick = () => {
-      document.querySelectorAll('.chip').forEach((x) => x.classList.toggle('active', x === b));
+      document.querySelectorAll('.chip[data-f]').forEach((x) => x.classList.toggle('active', x === b));
       filter = b.dataset.f; listLimit = 100; renderList();
+    };
+  });
+  document.querySelectorAll('.chip[data-lf]').forEach((b) => {
+    b.onclick = () => {
+      document.querySelectorAll('.chip[data-lf]').forEach((x) => x.classList.toggle('active', x === b));
+      lfilter = b.dataset.lf; listLimit = 100; renderList();
+    };
+  });
+  document.querySelectorAll('#level-pick .lvl').forEach((b) => {
+    b.onclick = () => {
+      state.settings.level = b.dataset.l; save(); renderHome();
+      toast('Nouveaux mots : niveau ' + LEVEL_NAME[b.dataset.l]);
     };
   });
 

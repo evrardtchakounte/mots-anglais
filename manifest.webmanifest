@@ -1,7 +1,7 @@
 {
   "name": "Mots anglais",
   "short_name": "Mots anglais",
-  "description": "Les 2000 mots anglais les plus utilisés à l'oral, 10 par jour.",
+  "description": "Les mots anglais les plus utilisés, du niveau débutant à avancé, 10 par jour.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
