@@ -193,8 +193,7 @@
     const reviews = mode === 'review' ? dueList().map((w) => ({ w, type: 'review' })) : [];
     const news = mode === 'new' ? nextNew(extraMode ? 10 : newLeftToday()) : [];
     const presents = news.map((w) => ({ w, type: 'new' }));
-    const quizzes = shuffle(news.map((w) => ({ w, type: 'quiz' })));
-    queue = reviews.concat(presents, quizzes);
+    queue = reviews.concat(presents);
     pos = 0; total = queue.length;
     sessionStats = { reviewed: 0, learned: 0 };
     if (!queue.length) { renderHome(); return; }
@@ -233,16 +232,19 @@
     if (isNew) registerNew(item.w);
     $('card-back').hidden = !isNew;
     $('act-reveal').hidden = isNew;
-    $('act-new').hidden = !isNew;
-    $('btn-got').textContent = 'J\'ai compris ✓';
+    $('act-new').hidden = true;
     $('btn-unskip').hidden = true;
     $('act-grade').hidden = true;
+    if (isNew) showGrades();
     if (state.settings.autoplay) setTimeout(() => speak(d[0]), 150);
   }
 
   function reveal() {
     $('card-back').hidden = false;
     $('act-reveal').hidden = true;
+    showGrades();
+  }
+  function showGrades() {
     $('act-grade').hidden = false;
     const c = state.cards[queue[pos].w];
     [3, 4, 5].forEach((g) => { $('iv-' + g).textContent = ivLabel(schedule(c, g).iv); });
