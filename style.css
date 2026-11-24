@@ -113,6 +113,8 @@ main { max-width: 560px; margin: 0 auto; padding: 4px 16px calc(env(safe-area-in
 .grade { padding: 12px 4px; font-size: 14px; color: #fff; border: 0; }
 .grade small { display: block; font-weight: 400; font-size: 12px; opacity: .9; margin-top: 2px; }
 .grade.again { background: var(--again); }
+.grade.skip { background: #64748b; }
+.btn.alt { background: var(--good); border-color: var(--good); }
 .grade.hard { background: var(--hard); }
 .grade.good { background: var(--good); }
 .grade.easy { background: var(--easy); }

@@ -39,8 +39,8 @@
         <button class="lvl" data-l="adv"><b>Avancé</b><small>C1–C2</small><span class="lp" id="lp-adv"></span></button>
       </div>
     </div>
-    <button class="btn primary big" id="btn-start">Commencer</button>
-    <button class="btn" id="btn-more" hidden>Apprendre 10 mots de plus</button>
+    <button class="btn primary big" id="btn-review">Réviser</button>
+    <button class="btn primary big alt" id="btn-new">Nouveaux mots</button>
     <button class="btn ghost" id="btn-list">📖 Voir tous les mots</button>
     <p class="hint">Chaque jour : d'abord les révisions, puis tes nouveaux mots. Touche 🔊 pour entendre la prononciation.</p>
   </section>
@@ -75,9 +75,10 @@
     </div>
     <div class="actions" id="act-new" hidden>
       <button class="btn primary big" id="btn-got">J'ai compris ✓</button>
+      <button class="btn" id="btn-unskip" hidden>Remettre ce mot en révision</button>
     </div>
     <div class="actions grades" id="act-grade" hidden>
-      <button class="btn grade again" data-g="0">À revoir<small>&lt; 1 min</small></button>
+      <button class="btn grade skip" data-g="skip">Ne plus réviser<small>je le connais</small></button>
       <button class="btn grade hard" data-g="3">Difficile<small id="iv-3"></small></button>
       <button class="btn grade good" data-g="4">Bien<small id="iv-4"></small></button>
       <button class="btn grade easy" data-g="5">Facile<small id="iv-5"></small></button>

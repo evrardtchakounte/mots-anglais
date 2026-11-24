@@ -49,7 +49,7 @@
   function dueList() {
     const t = today();
     return Object.keys(state.cards)
-      .filter((w) => INDEX.has(w) && state.cards[w].due <= t)
+      .filter((w) => INDEX.has(w) && !state.cards[w].done && state.cards[w].due <= t)
       .sort((a, b) => state.cards[a].due - state.cards[b].due || INDEX.get(a) - INDEX.get(b));
   }
   // Mots du niveau choisi d'abord (par fréquence), puis les niveaux au-dessus, puis en dessous.
@@ -169,19 +169,14 @@
     const s = state.streak;
     const active = s.last === today() || s.last === today() - 1;
     $('streak').textContent = active && s.count > 0 ? '🔥 ' + s.count + ' jour' + (s.count > 1 ? 's' : '') + ' d\'affilée' : '';
-    const btn = $('btn-start');
-    if (due + avail > 0) {
-      const parts = [];
-      if (due) parts.push(due + ' révision' + (due > 1 ? 's' : ''));
-      if (avail) parts.push(avail + ' nouveau' + (avail > 1 ? 'x' : ''));
-      btn.textContent = 'Commencer · ' + parts.join(' + ');
-      btn.disabled = false;
-      $('btn-more').hidden = true;
-    } else {
-      btn.textContent = 'Objectif du jour atteint ✓';
-      btn.disabled = true;
-      $('btn-more').hidden = nextNew(1).length === 0;
-    }
+    const rb = $('btn-review');
+    rb.textContent = due ? '🔁 Réviser · ' + due + ' mot' + (due > 1 ? 's' : '') : 'Révisions du jour faites ✓';
+    rb.disabled = !due;
+    const nb = $('btn-new');
+    const remaining = nextNew(1).length;
+    if (avail) { nb.textContent = '✨ Nouveaux mots · ' + avail; nb.disabled = false; extraMode = false; }
+    else if (remaining) { nb.textContent = '✨ Apprendre 10 mots de plus'; nb.disabled = false; extraMode = true; }
+    else { nb.textContent = 'Tous les mots sont vus 🎉'; nb.disabled = true; }
   }
 
   // ---------- Session ----------
@@ -191,10 +186,12 @@
   let sessionStats = { reviewed: 0, learned: 0 };
   let browseReturn = false;
 
-  function startSession(extra) {
+  let extraMode = false;
+  // mode : 'review' (révisions seules) ou 'new' (nouveaux mots seuls)
+  function startSession(mode) {
     rollDay();
-    const reviews = dueList().map((w) => ({ w, type: 'review' }));
-    const news = nextNew(extra ? 10 : newLeftToday());
+    const reviews = mode === 'review' ? dueList().map((w) => ({ w, type: 'review' })) : [];
+    const news = mode === 'new' ? nextNew(extraMode ? 10 : newLeftToday()) : [];
     const presents = news.map((w) => ({ w, type: 'new' }));
     const quizzes = shuffle(news.map((w) => ({ w, type: 'quiz' })));
     queue = reviews.concat(presents, quizzes);
@@ -237,6 +234,7 @@
     $('act-reveal').hidden = isNew;
     $('act-new').hidden = !isNew;
     $('btn-got').textContent = 'J\'ai compris ✓';
+    $('btn-unskip').hidden = true;
     $('act-grade').hidden = true;
     if (state.settings.autoplay) setTimeout(() => speak(d[0]), 150);
   }
@@ -267,6 +265,16 @@
     const item = queue[pos];
     const c = state.cards[item.w];
     if (!c) { pos += 1; return renderCard(); }
+    if (g === 'skip') {
+      // mot connu : il ne reviendra plus en révision
+      state.cards[item.w] = Object.assign({}, c, { done: true, reps: Math.max(c.reps, 1), due: 99999999 });
+      if (item.type === 'review') sessionStats.reviewed += 1;
+      queue = queue.filter((q, i) => i <= pos || q.w !== item.w);
+      total = queue.length;
+      touchStreak(); save();
+      pos += 1;
+      return renderCard();
+    }
     state.cards[item.w] = schedule(c, g);
     if (item.type === 'review') sessionStats.reviewed += 1;
     touchStreak();
@@ -292,12 +300,12 @@
     history.replaceState({ v: 'done' }, '');
   }
 
-  $('btn-start').onclick = () => startSession(false);
-  $('btn-more').onclick = () => startSession(true);
+  $('btn-review').onclick = () => startSession('review');
+  $('btn-new').onclick = () => startSession('new');
   $('btn-reveal').onclick = reveal;
   $('btn-got').onclick = gotNew;
   $('btn-home').onclick = () => history.back();
-  document.querySelectorAll('#act-grade [data-g]').forEach((b) => { b.onclick = () => grade(Number(b.dataset.g)); });
+  document.querySelectorAll('#act-grade [data-g]').forEach((b) => { b.onclick = () => grade(b.dataset.g === 'skip' ? 'skip' : Number(b.dataset.g)); });
   $('speak-word').onclick = () => speak($('card-word').textContent);
   document.querySelectorAll('[data-ex]').forEach((b) => {
     b.onclick = () => speak($(b.dataset.ex === '0' ? 'ex1' : 'ex2').textContent);
@@ -324,7 +332,7 @@
       if (shown >= listLimit) continue;
       shown++;
       const li = document.createElement('li');
-      const status = !c ? '' : c.reps > 0 ? '✓ révision ' + dueIn(c.due) : 'en cours';
+      const status = !c ? '' : c.done ? '✓ maîtrisé' : c.reps > 0 ? '✓ révision ' + dueIn(c.due) : 'en cours';
       li.innerHTML = '<span class="e"></span><span class="w"><b></b><span></span></span><span class="s"></span>';
       li.querySelector('.e').textContent = d[2];
       li.querySelector('b').textContent = (i + 1) + '. ' + d[0];
@@ -363,6 +371,13 @@
     $('act-grade').hidden = true;
     $('act-new').hidden = false;
     $('btn-got').textContent = 'Retour à la liste';
+    const bc = state.cards[w];
+    $('btn-unskip').hidden = !(bc && bc.done);
+    $('btn-unskip').onclick = () => {
+      Object.assign(state.cards[w], { done: false, due: today() + 1 });
+      delete state.cards[w].done;
+      save(); $('btn-unskip').hidden = true; toast('Ce mot reviendra en révision demain');
+    };
     browseReturn = true;
     show('card');
     $('title').textContent = d[0];
