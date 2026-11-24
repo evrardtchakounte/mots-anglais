@@ -230,6 +230,7 @@
     $('session-bar').style.width = ((pos / total) * 100).toFixed(1) + '%';
     $('session-info').textContent = (queue.length - pos) + ' carte' + (queue.length - pos > 1 ? 's' : '') + ' restante' + (queue.length - pos > 1 ? 's' : '');
     const isNew = item.type === 'new';
+    if (isNew) registerNew(item.w);
     $('card-back').hidden = !isNew;
     $('act-reveal').hidden = isNew;
     $('act-new').hidden = !isNew;
@@ -247,16 +248,19 @@
     [3, 4, 5].forEach((g) => { $('iv-' + g).textContent = ivLabel(schedule(c, g).iv); });
   }
 
+  // Un mot est enregistré dès qu'il a été montré : il ne pourra plus jamais revenir comme « nouveau »,
+  // seulement en révision (ou jamais, s'il est marqué « Ne plus réviser »).
+  function registerNew(w) {
+    if (state.cards[w]) return;
+    state.cards[w] = { ef: 2.5, reps: 0, iv: 0, due: today(), lapses: 0 };
+    state.daily.newCount += 1;
+    sessionStats.learned += 1;
+    touchStreak();
+    save();
+  }
+
   function gotNew() {
     if (browseReturn) { history.back(); return; }
-    const w = queue[pos].w;
-    if (!state.cards[w]) {
-      state.cards[w] = { ef: 2.5, reps: 0, iv: 0, due: today(), lapses: 0 };
-      state.daily.newCount += 1;
-      sessionStats.learned += 1;
-      touchStreak();
-      save();
-    }
     pos += 1;
     renderCard();
   }
@@ -383,7 +387,17 @@
     $('title').textContent = d[0];
     speak(d[0]);
   }
-  $('btn-list').onclick = () => { listLimit = 100; renderList(); show('list'); };
+  function openList(f) {
+    filter = f; lfilter = 'all'; listLimit = 100;
+    $('search').value = '';
+    document.querySelectorAll('.chip[data-f]').forEach((x) => x.classList.toggle('active', x.dataset.f === f));
+    document.querySelectorAll('.chip[data-lf]').forEach((x) => x.classList.toggle('active', x.dataset.lf === 'all'));
+    renderList(); show('list');
+  }
+  $('btn-list').onclick = () => openList('all');
+  $('tile-known').onclick = () => openList('learned');
+  $('tile-due').onclick = () => { if (dueList().length) startSession('review'); else toast('Aucune révision prévue aujourd\'hui ✓'); };
+  $('tile-new').onclick = () => { if (nextNew(1).length) startSession('new'); else toast('Tu as vu tous les mots 🎉'); };
   $('search').oninput = () => { listLimit = 100; renderList(); };
   $('btn-list-more').onclick = () => { listLimit += 200; renderList(); };
   document.querySelectorAll('.chip[data-f]').forEach((b) => {
