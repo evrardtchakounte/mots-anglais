@@ -1,5 +1,5 @@
 // Cache hors ligne. Change VERSION à chaque mise à jour des fichiers.
-const VERSION = 'mots-anglais-v6';
+const VERSION = 'mots-anglais-v7';
 const FILES = [
   './', 'index.html', 'style.css', 'app.js', 'words.js', 'manifest.webmanifest',
   'icon.svg', 'icon-192.png', 'icon-512.png'

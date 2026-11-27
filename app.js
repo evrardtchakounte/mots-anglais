@@ -64,6 +64,12 @@
     }
     return out;
   }
+  // Mot appris aujourd'hui (date enregistrée ; pour les anciens mots sans date, première note donnée aujourd'hui)
+  function learnedToday(c) {
+    if (!c) return false;
+    if (c.added !== undefined) return c.added === today();
+    return c.reps === 1 && !c.done && c.due - c.iv === today();
+  }
   function learnedCount() {
     return Object.values(state.cards).filter((c) => c.reps > 0).length;
   }
@@ -254,7 +260,7 @@
   // seulement en révision (ou jamais, s'il est marqué « Ne plus réviser »).
   function registerNew(w) {
     if (state.cards[w]) return;
-    state.cards[w] = { ef: 2.5, reps: 0, iv: 0, due: today(), lapses: 0 };
+    state.cards[w] = { ef: 2.5, reps: 0, iv: 0, due: today(), lapses: 0, added: today() };
     state.daily.newCount += 1;
     sessionStats.learned += 1;
     touchStreak();
@@ -332,6 +338,7 @@
       const c = state.cards[d[0]];
       if (filter === 'learned' && !(c && c.reps > 0)) continue;
       if (filter === 'new' && c) continue;
+      if (filter === 'today' && !learnedToday(c)) continue;
       if (lfilter !== 'all' && levelOf(d) !== lfilter) continue;
       if (q && !strip(d[0]).includes(q) && !strip(d[1]).includes(q)) continue;
       count++;
@@ -355,7 +362,7 @@
     $('btn-list-more').hidden = count <= shown;
     if (!count) {
       const li = document.createElement('li');
-      li.textContent = 'Aucun mot trouvé.';
+      li.textContent = filter === 'today' && !$('search').value ? 'Aucun nouveau mot appris aujourd\'hui.' : 'Aucun mot trouvé.';
       ul.appendChild(li);
     }
   }
@@ -395,11 +402,12 @@
     document.querySelectorAll('.chip[data-f]').forEach((x) => x.classList.toggle('active', x.dataset.f === f));
     document.querySelectorAll('.chip[data-lf]').forEach((x) => x.classList.toggle('active', x.dataset.lf === 'all'));
     renderList(); show('list');
+    if (f === 'today') $('title').textContent = 'Appris aujourd\'hui';
   }
   $('btn-list').onclick = () => openList('all');
   $('tile-known').onclick = () => openList('learned');
   $('tile-due').onclick = () => { if (dueList().length) startSession('review'); else toast('Aucune révision prévue aujourd\'hui ✓'); };
-  $('tile-new').onclick = () => { if (nextNew(1).length) startSession('new'); else toast('Tu as vu tous les mots 🎉'); };
+  $('tile-new').onclick = () => openList('today');
   $('search').oninput = () => { listLimit = 100; renderList(); };
   $('btn-list-more').onclick = () => { listLimit += 200; renderList(); };
   document.querySelectorAll('.chip[data-f]').forEach((b) => {
